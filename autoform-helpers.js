@@ -164,7 +164,7 @@ Template.registerHelper('afFieldNames', function autoFormFieldNames(options) {
       // correct array field item number instead of $.
       if (genericName !== name) {
         fieldList = fieldList.map(function (field) {
-          if (field.indexOf(genericNamePlusDot) === 0) {
+          if (field && field.indexOf(genericNamePlusDot) === 0) {
             return namePlusDot + field.slice(genericNamePlusDot.length);
           }
           return field;
@@ -172,14 +172,14 @@ Template.registerHelper('afFieldNames', function autoFormFieldNames(options) {
       }
 
       fieldList = fieldList.filter(function filterFieldsByName(field) {
-        return field.indexOf(namePlusDot) === 0;
+        return field && field.indexOf(namePlusDot) === 0;
       });
     }
 
     // If top level fields, be sure to remove any with $ in them
     else {
       fieldList = fieldList.filter(function filterArrayFields(field) {
-        return (field.slice(-2) !== '.$' && field.indexOf('.$.') === -1);
+        return (field && field.slice(-2) !== '.$' && field.indexOf('.$.') === -1);
       });
     }
 
