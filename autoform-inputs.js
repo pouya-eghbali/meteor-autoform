@@ -2,7 +2,7 @@
 
 getFlatDocOfFieldValues = function getFlatDocOfFieldValues(fields, ss) {
   var doc = {};
-  fields.each(function() {
+  fields.each(function () {
     var fieldName,
       val = AutoForm.getInputValue(this, ss);
     if (val !== void 0) {
@@ -122,27 +122,27 @@ getInputData = function getInputData(defs, hash, value, label, formType) {
   // in a simple way, we add the attributes to the HTML
   // only if their value is `true`. That is, unlike in
   // HTML, their mere presence does not matter.
-  ["disabled", "readonly", "checked", "required", "autofocus"].forEach(function(
-    booleanProp
-  ) {
-    if (!(booleanProp in hash)) {
-      return;
-    }
+  ["disabled", "readonly", "checked", "required", "autofocus"].forEach(
+    function (booleanProp) {
+      if (!(booleanProp in hash)) {
+        return;
+      }
 
-    // For historical reasons, we treat the string "true" and an empty string as `true`, too.
-    // But an empty string value results in the cleanest rendered output for boolean props,
-    // so we standardize as that.
-    if (
-      hash[booleanProp] === true ||
-      hash[booleanProp] === "true" ||
-      hash[booleanProp] === ""
-    ) {
-      inputAtts[booleanProp] = "";
-    } else {
-      // If the value is anything else, we don't render it
-      delete inputAtts[booleanProp];
+      // For historical reasons, we treat the string "true" and an empty string as `true`, too.
+      // But an empty string value results in the cleanest rendered output for boolean props,
+      // so we standardize as that.
+      if (
+        hash[booleanProp] === true ||
+        hash[booleanProp] === "true" ||
+        hash[booleanProp] === ""
+      ) {
+        inputAtts[booleanProp] = "";
+      } else {
+        // If the value is anything else, we don't render it
+        delete inputAtts[booleanProp];
+      }
     }
-  });
+  );
 
   /*
    * Set up the context. This is the object that becomes `this` in the
@@ -156,7 +156,7 @@ getInputData = function getInputData(defs, hash, value, label, formType) {
     max: defs.max,
     value: value,
     atts: inputAtts,
-    selectOptions: AutoForm.Utility.getSelectOptions(defs, hash)
+    selectOptions: AutoForm.Utility.getSelectOptions(defs, hash),
   };
 
   /*
@@ -177,15 +177,15 @@ getInputData = function getInputData(defs, hash, value, label, formType) {
 
 function markChangedThrottle(fn, limit) {
   let timeouts = {};
-  return function(template, fieldName, fieldValue) {
+  return function (template, fieldName, fieldValue) {
     clearTimeout(timeouts[fieldName]);
-    timeouts[fieldName] = setTimeout(function() {
+    timeouts[fieldName] = setTimeout(function () {
       fn(template, fieldName, fieldValue);
     }, limit);
   };
 }
 
-const markChangedAncestors = (template, fieldName) => {
+const markChangedAncestors = (template, fieldName, count) => {
   // To properly handle array fields, we'll mark the ancestors as changed, too
   // FIX THIS
   // XXX Might be a more elegant way to handle this
@@ -193,10 +193,10 @@ const markChangedAncestors = (template, fieldName) => {
   var dotPos = fieldName.lastIndexOf(".");
   if (dotPos == -1) return;
   fieldName = fieldName.slice(0, dotPos);
-  doMarkChanged(template, fieldName);
+  doMarkChanged(template, fieldName, undefined, --count);
 };
 
-const doMarkChanged = (template, fieldName, fieldValue) => {
+const doMarkChanged = (template, fieldName, fieldValue, markAncestors = 2) => {
   if (!template.formValues[fieldName]) {
     template.formValues[fieldName] = new Tracker.Dependency();
   }
@@ -209,10 +209,11 @@ const doMarkChanged = (template, fieldName, fieldValue) => {
     template.formValues[fieldName].isMarkedChanged = true;
     template.formValues[fieldName].changed();
   }
-  markChangedAncestors(template, fieldName);
+  if (markAncestors > 0)
+    markChangedAncestors(template, fieldName, markAncestors);
 };
 
-export const markChanged = markChangedThrottle(function(
+export const markChanged = markChangedThrottle(function (
   template,
   fieldName,
   fieldValue
@@ -251,7 +252,7 @@ updateTrackedFieldValue = function updateTrackedFieldValue(
 
 updateAllTrackedFieldValues = function updateAllTrackedFieldValues(template) {
   if (template && template.formValues) {
-    Object.keys(template.formValues).forEach(function(fieldName) {
+    Object.keys(template.formValues).forEach(function (fieldName) {
       updateTrackedFieldValue(template, fieldName);
     });
   }
@@ -260,10 +261,8 @@ updateAllTrackedFieldValues = function updateAllTrackedFieldValues(template) {
 getAllFieldsInForm = function getAllFieldsInForm(template, disabled = false) {
   // Get all elements with `data-schema-key` attribute, unless disabled
   const formId = template.data.id;
-  const allFields = template.$("[data-schema-key]").filter(function() {
-    const fieldForm = $(this)
-      .closest("form")
-      .attr("id");
+  const allFields = template.$("[data-schema-key]").filter(function () {
+    const fieldForm = $(this).closest("form").attr("id");
     return fieldForm == formId;
   });
   return disabled ? allFields : allFields.not("[disabled]");
