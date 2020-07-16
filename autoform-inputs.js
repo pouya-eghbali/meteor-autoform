@@ -185,7 +185,7 @@ function markChangedThrottle(fn, limit) {
   };
 }
 
-const markChangedAncestors = (template, fieldName, count) => {
+const markChangedAncestors = (template, fieldName) => {
   // To properly handle array fields, we'll mark the ancestors as changed, too
   // FIX THIS
   // XXX Might be a more elegant way to handle this
@@ -193,10 +193,10 @@ const markChangedAncestors = (template, fieldName, count) => {
   var dotPos = fieldName.lastIndexOf(".");
   if (dotPos == -1) return;
   fieldName = fieldName.slice(0, dotPos);
-  doMarkChanged(template, fieldName, undefined, --count);
+  doMarkChanged(template, fieldName, undefined);
 };
 
-const doMarkChanged = (template, fieldName, fieldValue, markAncestors = 2) => {
+const doMarkChanged = (template, fieldName, fieldValue) => {
   if (!template.formValues[fieldName]) {
     template.formValues[fieldName] = new Tracker.Dependency();
   }
@@ -209,8 +209,7 @@ const doMarkChanged = (template, fieldName, fieldValue, markAncestors = 2) => {
     template.formValues[fieldName].isMarkedChanged = true;
     template.formValues[fieldName].changed();
   }
-  if (markAncestors > 0)
-    markChangedAncestors(template, fieldName, markAncestors);
+  markChangedAncestors(template, fieldName);
 };
 
 export const markChanged = markChangedThrottle(function (
